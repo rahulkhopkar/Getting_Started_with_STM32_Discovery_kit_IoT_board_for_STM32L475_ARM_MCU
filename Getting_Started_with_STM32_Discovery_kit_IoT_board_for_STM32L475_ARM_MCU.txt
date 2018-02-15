@@ -1,0 +1,148 @@
+==== Step-by-Step Instructions ====
+
+=== Installing gcc, gdb and other Toolchains specifically for STM32 Discovery kit IOT Board for STM32L475 MCU  and executing "hello_world" program on the Board ===
+
+== Author ==
+RK (Rebel_without_Clause)
+
+== Build Environment ==
+Debian Linux
+
+== General Zephyr RTOS SDK Install Instructions ==
+Please follow the install instructions exactly as per the Zephyr Instructions Above (by Tim Webster), step-by-step here:
+(1) $ git clone https://github.com/bitbangr/zephyr.git (in your home directory source code cloning location)
+
+(2) $ ls -al (optional, just lists the directory contents)
+
+(3) $ cd zephyr/
+
+(4) $ ls
+
+(5) $ pip3 install --user -r scripts/requirements.txt
+
+(6) $ pwd
+
+(7) $ wget https://github.com/zephyrproject-rtos/meta-zephyr-sdk/releases/download/0.9.1/zephyr-sdk-0.9.1-setup.run
+
+(8) $ sudo chown -R your_user_name zephyr/
+
+(9) $ chmod u+x zephyr-sdk-0.9.1-setup.run
+
+(10) $ ./zephyr-sdk-0.9.1-setup.run
+
+(11) $ cd ..
+
+(12) $ ls (optional, just lists the directory contents)
+
+(13) $ export ZEPHYR_GCC_VARIANT=zephyr
+
+(14) $ export ZEPHYR_SDK_INSTALL_DIR=/opt/zephyr-sdk
+
+(15 instead of 13 and 14) To use the same toolchain in future sessions, the last two lines may be replaced by:
+$ cat <<EOF > ~/.zephyrrc
+export ZEPHYR_GCC_VARIANT=zephyr
+export ZEPHYR_SDK_INSTALL_DIR=/opt/zephyr-sdk
+EOF
+ 
+(16) Don’t follow the steps on:
+http://zephyr-docs.s3-website-us-east-1.amazonaws.com/online/dev/boards/arm/disco_l475_iot1/doc/disco_l475_iot1.html1.
+
+(17) Use a KNOWN good USB to USB micro cable!
+When connected to the micro USB terminal "USB STLINK", the LED besides the "USB STLINK" terminal should be SOLID RED before it is programmed.
+
+(18) To debug package dependency issues, let Debian’s “Synaptics Package Manager” and Fedora’s “Yum Package manager” point the correct dependencies.
+
+== Nuts and Bolts Instructions for ST MICRO Board STM32L475 ==
+Do not connect the ST MICRO Board unless instructed.
+These were executed on a Debian Linux machine, specifically Ubuntu 16.04 LTS.
+(1) Download the source code (in a directory) in your home directory, that is, Git clone (command "git clone") from location "https://github.com/erwango/openocd-stm32". 
+
+(2) Once the source code is downloaded, change the working directory to "~/openocd-stm32".
+
+(3) Open a Bash Shell (command line window/terminal) on your Linux machine and enter the following commands in succession (wait for each command to execute or create a shell script file with the following:
+$ ./bootstrap
+$ ./configure --enable-maintainer-mode --enable-stlink
+$ make
+
+(4) Enter "sudo apt-get install gdb-arm-none-eabi" if gdb-arm (arm debugger) is not installed.
+
+(5) If you have a different arm-gcc installed, enter "sudo apt-get remove gcc-arm-embedded".
+
+(6) To install arm-gcc, enter "sudo apt-get install gdb-arm-none-eabi".
+
+(7) Edit the "setlocal.sh" script file in an editor (atom, gedit, nano, vi, vim, etc.).
+
+(8) Find the path for arm-gdb by entering "sudo find /usr/bin -iname *gdb*".
+
+(9) Copy the path from the search results in (8) and replace the second line by "gdb_path=/usr/bin/arm-none-eabi-gdb" (note: "/usr/bin/arm-none-eabi-gdb" is just an example, it is the path where your arm-gdb points to) and save the "setlocal.sh" file.
+
+(10) Enter "source setlocal.sh" after modifying "setlocal.sh" file.
+
+(11) Install screen by entering "sudo apt-get install screen".
+
+(12) Download examples by creating a download folder in your home directory, change the working directory to that created directory and enter the command "git clone https://github.com/bitbangr/zephyr.git".
+
+(13) A directory named "zephyr" and its subdirectories will be created.
+
+(14) Change the working directory by entering "cd ~openocd-stm32".
+
+(15) Before connecting the board, enter the command "lsusb", you should see a list of USB ports on your computer.
+
+(16) CONNECT THE ST MICRO Board; as soon as it is connected, the computer should autodetect the board and display it as "DIS_L4IOT" or similar in the Folders window.
+If not the re-enter the command "lsusb",the board name "STMicroelectronics ST-LINK/V2.1 (Nucleo-F103RB)" should appear at the shell prompt.
+the LED besides the "USB STLINK" terminal should be SOLID RED before it is programmed.
+
+(17) Enter the command "stm32_flsh l4 ~zephyr/samples/hello_world/outdir/disco_l475_iot1/zephyr.bin", if it fails, enter "sudo stm32_flsh l4 ~zephyr/samples/hello_world/outdir/disco_l475_iot1/zephyr.bin".
+(See the Flash writing screenshots "Flash_writing_screenshot_1.png" and "Flash_writing_screenshot_2.png"), the LED besides the "USB STLINK" terminal should be FLASHING GREEN as it is programmed.
+Wait for ST Micro flash to be written, you may get a message such as “Unable to match requested speed 500 kHz, using 480 kHz” (this is not an error).
+
+(18) Press the “RESET” button on the ST Micro board to execute the "hello_world" program on the ST MICRO board. The LED besides the "USB STLINK" terminal should be SOLID GREEN.
+
+(19) Enter the command "screen /dev/ttyACM0 115200" (this command sets the communication speed, else you may see garbage outputted by ST Micro board);
+you should see the output as shown in "hello_world_screenshot.png" screenshot.
+Mark has reported success using the Arduino IDE to view this output.
+
+== Blink LED on Board (from "~/zephyr/samples/basic/blinky") ==
+Henceforth all examples need to be compiled as they are not precompiled in the Zephyr Repository.
+
+Go to zephyr directory and execute command:
+(1) "cd ~/zephyr/samples/basic/blinky"
+
+(2) Edit the Makefile and change the board name as shown:
+BOARD ?= disco_l475_iot1
+
+(3) $ make
+
+(4) An output file "zephyr.bin" (to be downloaded on the STM32L475 board) will be created (built) in "~/zephyr/samples/basic/blinky/outdir/disco_l475_iot1".
+
+(5) Go to the directory by executing command "cd ~openocd-stm32".
+
+(6) Connect the STM32L475 board to the computer USB port via the "USB STLINK" port.
+
+(7) FLash the board by executing the command "sudo stm32_flsh l4 ~/zephyr/samples/basic/blinky/outdir/disco_l475_iot1/zephyr.bin".
+
+(8) Press the "RESET" button on the board, the LED on the board should flash.
+
+
+== Log Data from Temperature & Humidity Sensor ==
+Go to zephyr directory and execute command:
+(1) "cd ~/zephyr/samples/sensor/hts221"
+
+(2) Edit the Makefile and change the board name as shown:
+BOARD ?= disco_l475_iot1
+
+(3) $ make
+
+(4) An output file "zephyr.bin" (to be downloaded on the STM32L475 board) will be created (built) in "~/zephyr/samples/sensor/hts221/outdir/disco_l475_iot1".
+
+(5) Go to the directory by executing command "cd ~openocd-stm32".
+
+(6) Connect the STM32L475 board to the computer USB port via the "USB STLINK" port.
+
+(7) FLash the board by executing the command "sudo stm32_flsh l4 ~/zephyr/samples/sensor/hts221/outdir/disco_l475_iot1/zephyr.bin".
+
+(8) Press the "RESET" button on the board to execute the program from Flash.
+
+(9) Enter the command "screen /dev/ttyACM0 115200", your PC Terminal (Screen) should show the Temperature and Humidity Readings.
+
+
